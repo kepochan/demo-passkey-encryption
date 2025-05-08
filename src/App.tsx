@@ -23,6 +23,8 @@ function App() {
   const [decryptText, setDecryptText] = useState('');
   const [decryptedResult, setDecryptedResult] = useState('');
   const [decryptLoading, setDecryptLoading] = useState(false);
+  const [decryptError, setDecryptError] = useState(false);
+  const [decryptErrorMessage, setDecryptErrorMessage] = useState('');
   
   // UI state
   const [sectionsEnabled, setSectionsEnabled] = useState({
@@ -94,11 +96,48 @@ function App() {
     if (!decryptText.trim()) return;
     
     setDecryptLoading(true);
+    setDecryptError(false);
+    setDecryptErrorMessage('');
+    setDecryptedResult('');
+    
     try {
+      console.log('Starting decryption attempt...');
+      // Parse the encrypted data to validate it first
+      let parsedData;
+      try {
+        parsedData = JSON.parse(decryptText);
+        if (!parsedData.salt || !parsedData.iv || !parsedData.ciphertext) {
+          throw new Error('Invalid encrypted data format: missing required fields');
+        }
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        throw new Error('Invalid encrypted data format: not valid JSON');
+      }
+      
+      // Now attempt to decrypt with valid JSON data
       const decrypted = await encryptionService.decrypt(decryptText);
+      
+      // If decryption is successful but returns empty string
+      if (decrypted === '') {
+        throw new Error('Decryption resulted in empty text');
+      }
+      
       setDecryptedResult(decrypted);
+      console.log('Decryption successful');
     } catch (error) {
-      setDecryptedResult(`Error: ${(error as Error).message}`);
+      // Log the error to console for debugging
+      console.error('Decryption error:', error);
+      
+      // Set error message and state
+      setDecryptedResult('');
+      setDecryptError(true);
+      setDecryptErrorMessage((error as Error).message || 'Failed to decrypt the text');
+      
+      // Log that we've set the error state
+      console.log('Set error state:', {
+        error: true,
+        message: (error as Error).message || 'Failed to decrypt the text'
+      });
     } finally {
       setDecryptLoading(false);
     }
@@ -242,7 +281,15 @@ function App() {
           </button>
         )}
         
-        {decryptedResult && (
+        {decryptError && (
+          <div className="result-container">
+            <div className="status-message error">
+              <strong>Decryption failed:</strong> {decryptErrorMessage || 'Please check that the encrypted text is valid and try again.'}
+            </div>
+          </div>
+        )}
+        
+        {decryptedResult && !decryptError && (
           <div className="result-container">
             <h3>Decrypted Text:</h3>
             <div className="result-box">
