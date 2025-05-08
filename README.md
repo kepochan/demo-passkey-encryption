@@ -2,6 +2,8 @@
 
 This project demonstrates how to use WebAuthn PassKeys for secure client-side encryption. It showcases the PRF (Pseudorandom Function) extension for generating encryption keys from PassKeys.
 
+> **Quick Start:** `docker run -p 8888:80 kepo/demo-passkey-encryption`
+
 ## Features
 
 - WebAuthn PassKey registration and authentication
@@ -43,6 +45,13 @@ docker build -t passkey-encryption-demo .
 
 # Run the container on port 8888
 docker run -p 8888:80 passkey-encryption-demo
+```
+
+Alternatively, you can pull the pre-built image from DockerHub:
+
+```bash
+# Pull and run the image in one command
+docker run -p 8888:80 kepo/demo-passkey-encryption
 ```
 
 After running these commands, the application will be available at [http://localhost:8888](http://localhost:8888).
